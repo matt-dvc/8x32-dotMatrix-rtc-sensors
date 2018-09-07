@@ -1,12 +1,12 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Max72xxPanel.h>
-#include "DHT.h" //include the temp sensor library
+#include <DHT.h> //include the temp sensor library
 #include <Adafruit_Sensor.h>
 #define DHTPIN 7     // what pin we're connected to
 #define DHTTYPE DHT11   // DHT 11 temp&humid sensor
 #include <Wire.h>
-#include "RTClib.h"
+#include <RTClib.h>
 
 RTC_DS3231 rtc;
 char daysOfTheWeek[7][12] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
@@ -42,7 +42,7 @@ void setup() {
 //  }
 }
 
-int displaydata(String);
+void displaydata(String);
 int rtcclocktime();
 
 
@@ -99,7 +99,7 @@ void loop() {
 
 }
 
-displaydata(String tape){
+void displaydata(String tape){
   //counter++;
   for ( int i = 0 ; i < width * tape.length() + matrix.width() - 1 - spacer; i++ ) {
     matrix.fillScreen(LOW);
@@ -115,8 +115,8 @@ displaydata(String tape){
     }
     matrix.write(); // Send bitmap to display
    delay(wait);
+   
   }
-  //return 0;
 }
 
 /*rtcclocktime(){
