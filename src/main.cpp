@@ -8,7 +8,8 @@
 #include <Wire.h>
 #include <RTClib.h>
 
-char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+char daysOfTheWeek[7][12] = {"Sunday ", "Monday ", "Tuesday ", "Wednesday ", "Thursday ", "Friday ", "Saturday "};
+char monthName[12][4]= {"Jan","Feb","Mar","Apr","May","Jun","Aug","Sep","Oct","Nov","Dec"};
 int pinCS = 10; // Attach CS to this pin, DIN to MOSI and CLK to SCK
 int numberOfHorizontalDisplays = 1;
 int numberOfVerticalDisplays = 4;
@@ -25,6 +26,7 @@ String cels = "C";
 String cent = "%";
 String divider = ":";
 String slash = "/";
+String space;
 String tape;
 String hrmin;
 
@@ -72,18 +74,34 @@ void loop() {
         Serial.println(counter);
         Serial.println(tape.length());
         displaydata(tape);
-                //DAYNAME
+                /*DAYNAME
         tape = String(daysOfTheWeek[now.dayOfTheWeek()]);
         Serial.println(tape); // debug
         Serial.println(counter);
         Serial.println(tape.length());
-        scrolldata(tape);
+        scrolldata(tape);*/
                 //DATE
-        tape = String(now.day() + slash + now.month());
+
+              
+              if (now.day() == 1 or now.day() == 21 or now.day() == 31) {
+                 space = "st ";
+              } else 
+              if (now.day() == 2 or now.day() == 22) {
+                 space = "nd ";
+              } else 
+              if (now.day() == 3 or now.day() == 23) {
+                 space = "rd ";
+              } else 
+               space = "th ";
+              
+              
+              
+
+        tape = String(daysOfTheWeek[now.dayOfTheWeek()]) + String(now.day()) + String(space) + String(monthName[now.month()]);
         Serial.println(tape); // debug
         Serial.println(counter);
         Serial.println(tape.length());
-        displaydata(tape);                /*
+        scrolldata(tape);                /*
                 //LIGHT
         tape = String(reading);
         Serial.println(tape); // debug
