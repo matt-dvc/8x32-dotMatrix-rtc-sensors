@@ -9,7 +9,7 @@
 #include <RTClib.h>
 
 char daysOfTheWeek[7][12] = {"Sunday ", "Monday ", "Tuesday ", "Wednesday ", "Thursday ", "Friday ", "Saturday "};
-char monthName[12][4]= {"Jan","Feb","Mar","Apr","May","Jun","Aug","Sep","Oct","Nov","Dec"};
+char monthName[12][5]= {"Jan ","Feb ","Mar ","Apr ","May ","Jun ","Jul ","Aug ","Sep ","Oct ","Nov ","Dec "};
 int pinCS = 10; // Attach CS to this pin, DIN to MOSI and CLK to SCK
 int numberOfHorizontalDisplays = 1;
 int numberOfVerticalDisplays = 4;
@@ -24,7 +24,7 @@ String H = "H:";
 String T = "T:";
 String cels = "C";
 String cent = "%";
-String divider = ":";
+String divider;
 String slash = "/";
 String space;
 String tape;
@@ -69,19 +69,23 @@ void loop() {
         displaydata(tape);
                 //TIME
         DateTime now = rtc.now();
-         tape = String(now.hour() + String(divider)) + now.minute();
+                if (now.minute() < 10) {
+                  divider = ":0";
+                } else divider = ":";
+                
+                if (now.minute() > 60 or now.minute() < 0 or now.hour() < 0 or now.hour() > 24  ) {
+                 String tape = "Time sync error!!";
+                 scrolldata(tape);
+                } 
+                else
+                {
+                  tape = String(now.hour() + String(divider)) + now.minute();
+                  displaydata(tape);
+                }
+                
         Serial.println(tape); // debug
         Serial.println(counter);
         Serial.println(tape.length());
-        displaydata(tape);
-                /*DAYNAME
-        tape = String(daysOfTheWeek[now.dayOfTheWeek()]);
-        Serial.println(tape); // debug
-        Serial.println(counter);
-        Serial.println(tape.length());
-        scrolldata(tape);*/
-                //DATE
-
               
               if (now.day() == 1 or now.day() == 21 or now.day() == 31) {
                  space = "st ";
@@ -94,28 +98,19 @@ void loop() {
               } else 
                space = "th ";
               
-              
-              
-
-        tape = String(daysOfTheWeek[now.dayOfTheWeek()]) + String(now.day()) + String(space) + String(monthName[now.month()]);
+        tape = String(daysOfTheWeek[now.dayOfTheWeek()]) + String(now.day()) + String(space) + String(monthName[now.month()-1]);
         Serial.println(tape); // debug
         Serial.println(counter);
         Serial.println(tape.length());
-        scrolldata(tape);                /*
-                //LIGHT
-        tape = String(reading);
-        Serial.println(tape); // debug
-        Serial.println(counter);
-        Serial.println(tape.length());
-        displaydata(tape);*/
+        scrolldata(tape);               
 }
 
 void displaydata(String tape){
   //counter++;
-  for ( int i = 0 ; i < width * tape.length() + matrix.width() - 1 - spacer; i++ ) {
+  for ( uint8_t i = 0 ; i < width * tape.length() + matrix.width() - 1 - spacer; i++ ) {
     matrix.fillScreen(LOW);
     matrix.setIntensity(reading/30);
-    int letter = tape.length();//i / width;
+    uint8_t letter = tape.length();//i / width;
     int x = (matrix.width() - 1);//- i % width;
     int y = (matrix.height() - 8) / 2; // center the text vertically
     while ( x + width - spacer >= 0 && letter >= 0 ) {
@@ -127,17 +122,16 @@ void displaydata(String tape){
     }
     matrix.write(); // Send bitmap to display
    delay(wait);
-   
   }
 }
 
 void scrolldata(String tape)  {
 
-  for ( int i = 0 ; i < width * tape.length() + matrix.width() - 1 - spacer; i++ ) {
+  for ( uint8_t i = 0 ; i < width * tape.length() + matrix.width() - 1 - spacer; i++ ) {
 
     matrix.fillScreen(LOW);
     matrix.setIntensity(reading/30);
-    int letter = i / width;
+    uint8_t letter = i / width;
     int x = (matrix.width() - 1) - i % width;
     int y = (matrix.height() - 8) / 2; // center the text vertically
 
