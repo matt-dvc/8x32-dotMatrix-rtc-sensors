@@ -8,18 +8,17 @@
 #include <Wire.h>
 #include <RTClib.h>
 
-RTC_DS3231 rtc;
-char daysOfTheWeek[7][12] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 int pinCS = 10; // Attach CS to this pin, DIN to MOSI and CLK to SCK
 int numberOfHorizontalDisplays = 1;
 int numberOfVerticalDisplays = 4;
+int lightPin = 0;
 int wait = 20; // In milliseconds
 int spacer = 1;
 int width = 5 + spacer; // The font width is 5 pixels
 int counter = 1;
-Max72xxPanel matrix = Max72xxPanel(pinCS, numberOfHorizontalDisplays, numberOfVerticalDisplays);
-DHT dht(DHTPIN, DHTTYPE);
+int reading;
+
 String H = "H:";
 String T = "T:";
 String cels = "C";
@@ -29,80 +28,75 @@ String slash = "/";
 String tape;
 String hrmin;
 
+RTC_DS3231 rtc;
+Max72xxPanel matrix = Max72xxPanel(pinCS, numberOfHorizontalDisplays, numberOfVerticalDisplays);
+DHT dht(DHTPIN, DHTTYPE);
+
 void setup() {
   matrix.setIntensity(0.1); // Use a value between 0 and 15 for brightness
   dht.begin();
-  Serial.begin(9600);
+  //Serial.begin(9600);
   matrix.setRotation(1);    // The same hold for the last display
   //delay(5000);
   //if (rtc.lostPower()) {
-  //  Serial.println("RTC lost power, lets set the time!");
-    // following line sets the RTC to the date & time this sketch was compiled
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 //  }
 }
 
 void displaydata(String);
-int rtcclocktime();
-
-
+void scrolldata(String);
+//int rtcclocktime();
 
 void loop() {
 
 
-
+   reading  = analogRead(lightPin);
    int temp = dht.readTemperature();
    int hum = dht.readHumidity();
-   //String hrmin = hrmin;
-   //counter++;
-
-   //if (counter = 1) {
-  //   counter = 2;
+                //TEMP
         String tape = String(T) + String(temp) + String(cels);
         Serial.println(tape); // debug
         Serial.println(counter);
         Serial.println(tape.length());
         displaydata(tape);
-
-  //  } else if (counter = 2){
-     tape = String(H) + String(hum) + String(cent);
+                //HUMID
+        tape = String(H) + String(hum) + String(cent);
         Serial.println(tape); // debug
         Serial.println(counter);
         Serial.println(tape.length());
         displaydata(tape);
-  //  } else if (counter = 3){
+                //TIME
         DateTime now = rtc.now();
-     tape = String(now.hour() + String(divider)) + now.minute();
+         tape = String(now.hour() + String(divider)) + now.minute();
         Serial.println(tape); // debug
         Serial.println(counter);
         Serial.println(tape.length());
         displaydata(tape);
-
-    //    DateTime now = rtc.now();
-    tape = String(daysOfTheWeek[now.dayOfTheWeek()]);
+                //DAYNAME
+        tape = String(daysOfTheWeek[now.dayOfTheWeek()]);
         Serial.println(tape); // debug
         Serial.println(counter);
         Serial.println(tape.length());
-        displaydata(tape);
-  //  } else if (counter > 3 ) counter = 1;
-    tape = String(now.day() + slash + now.month());
+        scrolldata(tape);
+                //DATE
+        tape = String(now.day() + slash + now.month());
         Serial.println(tape); // debug
         Serial.println(counter);
         Serial.println(tape.length());
-        displaydata(tape);
-
-
-
-//rtcclocktime();
-
-//delay(1000);
-
+        displaydata(tape);                /*
+                //LIGHT
+        tape = String(reading);
+        Serial.println(tape); // debug
+        Serial.println(counter);
+        Serial.println(tape.length());
+        displaydata(tape);*/
 }
 
 void displaydata(String tape){
   //counter++;
   for ( int i = 0 ; i < width * tape.length() + matrix.width() - 1 - spacer; i++ ) {
     matrix.fillScreen(LOW);
+    matrix.setIntensity(reading/30);
     int letter = tape.length();//i / width;
     int x = (matrix.width() - 1);//- i % width;
     int y = (matrix.height() - 8) / 2; // center the text vertically
@@ -119,11 +113,27 @@ void displaydata(String tape){
   }
 }
 
-/*rtcclocktime(){
-  DateTime now = rtc.now();
-//---------------------------
-String hrmin =  String(now.hour() + divider + now.minute());
-Serial.print(String(hrmin));
+void scrolldata(String tape)  {
 
-//-----------------------------------
-*/
+  for ( int i = 0 ; i < width * tape.length() + matrix.width() - 1 - spacer; i++ ) {
+
+    matrix.fillScreen(LOW);
+    matrix.setIntensity(reading/30);
+    int letter = i / width;
+    int x = (matrix.width() - 1) - i % width;
+    int y = (matrix.height() - 8) / 2; // center the text vertically
+
+    while ( x + width - spacer >= 0 && letter >= 0 ) {
+      if ( letter < tape.length() ) {
+        matrix.drawChar(x, y, tape[letter], HIGH, LOW, 1);
+      }
+
+      letter--;
+      x -= width;
+    }
+
+    matrix.write(); // Send bitmap to display
+
+  delay(wait);
+  }
+}
