@@ -38,7 +38,7 @@ void setup() {
   matrix.setIntensity(0.1); // Use a value between 0 and 15 for brightness
   dht.begin();
   rtc.begin();
-  //Serial.begin(9600);
+  Serial.begin(9600);
   matrix.setRotation(1);    // The same hold for the last display
   //delay(5000);
   //if (rtc.lostPower()) {
